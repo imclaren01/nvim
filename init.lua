@@ -131,11 +131,49 @@ vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 vim.keymap.set('n', '<leader>st', require('telescope.builtin').git_files, { desc = '[S]earch Gi[t]' })
 
+-- Disable italics
+vim.api.nvim_create_autocmd("ColorScheme", {
+  pattern = "*",
+  callback = function()
+    local groups = vim.api.nvim_get_hl(0, {})
+    for group, opts in pairs(groups) do
+      if opts.italic then
+        opts.italic = false
+        vim.api.nvim_set_hl(0, group, opts)
+      end
+    end
+  end,
+})
+
+-- Also run it immediately for the current colorscheme
+vim.schedule(function()
+  local groups = vim.api.nvim_get_hl(0, {})
+  for group, opts in pairs(groups) do
+    if opts.italic then
+      opts.italic = false
+      vim.api.nvim_set_hl(0, group, opts)
+    end
+  end
+end)
+
+-- Compiler
+-- Open compiler
+vim.api.nvim_set_keymap('n', '<F6>', "<cmd>CompilerOpen<cr>", { noremap = true, silent = true })
+
+-- Redo last selected option
+vim.api.nvim_set_keymap('n', '<S-F6>',
+     "<cmd>CompilerStop<cr>" -- (Optional, to dispose all tasks before redo)
+  .. "<cmd>CompilerRedo<cr>",
+ { noremap = true, silent = true })
+
+-- Toggle compiler results
+vim.api.nvim_set_keymap('n', '<S-F7>', "<cmd>CompilerToggleResults<cr>", { noremap = true, silent = true })
+
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
 require('nvim-treesitter.configs').setup {
   -- Add languages to be installed here that you want installed for treesitter
-  ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vimdoc', 'vim', "zig" },
+  ensure_installed = { 'c', 'cpp', 'go', 'hlsl', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vimdoc', 'vim' },
 
   -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
   auto_install = false,
@@ -269,8 +307,25 @@ local servers = {
       telemetry = { enable = false },
     },
   },
-  zls = {}
 }
+local zls =  {
+      enableAutofix = true,
+      enable_snippets = true,
+      enable_ast_check_diagnostics = true,
+      enable_autofix = true,
+      enable_import_embedfile_argument_completions = true,
+      warn_style = true,
+      enable_semantic_tokens = true,
+      enable_inlay_hints = true,
+      inlay_hints_hide_redundant_param_names = true,
+      inlay_hints_hide_redundant_param_names_last_token = true,
+      operator_completions = true,
+      include_at_in_builtins = true,
+      max_detail_length = 1048576,
+      zig_exe_path='C:/Users/halop/.zvm/bin/zig.exe',
+      zls_exe_path='C:/Users/halop/.zvm/bin/zls.exe'
+  }
+
 
 -- Setup neovim lua configuration
 require('neodev').setup()
@@ -294,6 +349,13 @@ mason_lspconfig.setup_handlers {
       settings = servers[server_name],
     }
   end,
+}
+
+require('lspconfig')['zls'].setup {
+  capabilities = capabilities,
+  on_attach = on_attach,
+  settings = zls,
+  cmd = { 'C:/Users/halop/.zvm/bin/zls.exe'}
 }
 
 -- nvim-cmp setup
