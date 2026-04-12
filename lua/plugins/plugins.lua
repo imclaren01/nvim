@@ -28,6 +28,17 @@ return {
   {
     'github/copilot.vim'
   },
+  { -- treesitter-context
+    'nvim-treesitter/nvim-treesitter-context',
+    config = function()
+      require('treesitter-context').setup {
+        enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
+        max_lines = 0, -- How many lines the window should span. Values <= 0 mean no limit.
+        mode = 'topline',
+        line_numbers = true,
+      }
+    end,
+  },
   {
     'jose-elias-alvarez/null-ls.nvim',
     opts = {
@@ -122,9 +133,13 @@ return {
   --Autocompletion suggestions in function call
   {
     "ray-x/lsp_signature.nvim",
-    event = "VeryLazy",
-    opts = {},
-    config = function(_, opts) require 'lsp_signature'.setup(opts) end
+    event = "InsertEnter",
+    opts = {
+      bind = true,
+      handler_opts = {
+        border = "rounded"
+      }
+    },
   },
 
   -- Useful plugin to show you pending keybinds.

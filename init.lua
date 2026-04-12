@@ -162,9 +162,9 @@ vim.api.nvim_set_keymap('n', '<F6>', "<cmd>CompilerOpen<cr>", { noremap = true, 
 
 -- Redo last selected option
 vim.api.nvim_set_keymap('n', '<S-F6>',
-     "<cmd>CompilerStop<cr>" -- (Optional, to dispose all tasks before redo)
+  "<cmd>CompilerStop<cr>"    -- (Optional, to dispose all tasks before redo)
   .. "<cmd>CompilerRedo<cr>",
- { noremap = true, silent = true })
+  { noremap = true, silent = true })
 
 -- Toggle compiler results
 vim.api.nvim_set_keymap('n', '<S-F7>', "<cmd>CompilerToggleResults<cr>", { noremap = true, silent = true })
@@ -177,6 +177,9 @@ require('nvim-treesitter.configs').setup {
 
   -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
   auto_install = false,
+
+  -- Use prefer_git = false to avoid compilation issues on Windows
+  prefer_git = false,
 
   highlight = { enable = true },
   indent = { enable = false, disable = { 'python' } },
@@ -242,9 +245,14 @@ vim.keymap.set('n', '<leader>lf', vim.diagnostic.open_float, { desc = "Open floa
 vim.keymap.set('n', '<leader>ll', vim.diagnostic.setloclist, { desc = "Open diagnostics list" })
 vim.keymap.set('n', '<leader>ls', vim.lsp.buf.signature_help, { desc = "Open floating language signature" })
 
--- LSP settings.
---  his function gets run when an LSP connects to a particular buffer.
-local on_attach = function(_, bufnr)
+-- LSP settings using the new vim.lsp.config API
+
+-- nvim-cmp supports additional completion capabilities, so broadcast that to servers
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+
+-- This function gets run when an LSP connects to a particular buffer.
+local on_attach = function(client, bufnr)
   -- NOTE: Remember that lua is a real programming language, and as such it is possible
   -- to define small helper and utility functions so you don't have to repeat yourself
   -- many times.
@@ -287,75 +295,132 @@ local on_attach = function(_, bufnr)
   end, { desc = 'Format current buffer with LSP' })
 end
 
--- Enable the following language servers
---  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
---
---  Add any additional override configuration in the following tables. They will be passed to
---  the `settings` field of the server config. You must look up that documentation yourself.
-local servers = {
-  clangd = {},
-  gopls = {},
-  -- pyright = {},
-  -- rust_analyzer = {},
-  eslint = {},
-  tsserver = { filetypes = { "typescript", "typescriptreact", "typescript.tsx" } },
-  texlab = {},
-  jdtls = {},
-  lua_ls = {
+-- Configure LSP servers using the new vim.lsp.config API
+-- Configure each server with vim.lsp.config instead of lspconfig
+
+-- C/C++
+vim.lsp.config('clangd', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+  cmd = { 'clangd', "--fallback-style=google" },
+})
+
+-- Set indentation for specific file types
+-- vim.api.nvim_create_autocmd("FileType", {
+--   pattern = { "c", "cpp", "h", "hpp" },
+--   callback = function()
+--     vim.opt_local.tabstop = 2
+--   end,
+-- })
+
+-- Go
+vim.lsp.config('gopls', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+-- TypeScript/JavaScript
+vim.lsp.config('eslint', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+vim.lsp.config('tsserver', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+  filetypes = { "typescript", "typescriptreact", "typescript.tsx" },
+})
+
+-- LaTeX
+vim.lsp.config('texlab', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+-- Java
+vim.lsp.config('jdtls', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+-- Lua
+vim.lsp.config('lua_ls', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+  settings = {
     Lua = {
       workspace = { checkThirdParty = false },
       telemetry = { enable = false },
     },
   },
-}
-local zls =  {
-      enableAutofix = true,
-      enable_snippets = true,
-      enable_ast_check_diagnostics = true,
-      enable_autofix = true,
-      enable_import_embedfile_argument_completions = true,
-      warn_style = true,
-      enable_semantic_tokens = true,
-      enable_inlay_hints = true,
-      inlay_hints_hide_redundant_param_names = true,
-      inlay_hints_hide_redundant_param_names_last_token = true,
-      operator_completions = true,
-      include_at_in_builtins = true,
-      max_detail_length = 1048576,
-      zig_exe_path='C:/Users/halop/.zvm/bin/zig.exe',
-      zls_exe_path='C:/Users/halop/.zvm/bin/zls.exe'
-  }
+})
 
+vim.lsp.config('zls', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+  filetypes = { "zig", "zon" },
+  settings = {
+    enableAutofix = true,
+    enable_snippets = true,
+    enable_ast_check_diagnostics = true,
+    enable_autofix = true,
+    enable_import_embedfile_argument_completions = true,
+    warn_style = true,
+    enable_semantic_tokens = true,
+    enable_inlay_hints = true,
+    inlay_hints_hide_redundant_param_names = true,
+    inlay_hints_hide_redundant_param_names_last_token = true,
+    operator_completions = true,
+    include_at_in_builtins = true,
+    max_detail_length = 1048576,
+    zig_exe_path = 'C:/Users/halop/.zvm/bin/zig.exe',
+  },
+  cmd = { 'C:/Users/halop/.zvm/bin/zls.exe' }
+})
+
+-- Zig (manual setup since it may not be migrated to vim.lsp.config yet)
+-- require('lspconfig')['zls'].setup {
+--   capabilities = capabilities,
+--   on_attach = on_attach,
+--   settings = {
+--     enableAutofix = true,
+--     enable_snippets = true,
+--     enable_ast_check_diagnostics = true,
+--     enable_autofix = true,
+--     enable_import_embedfile_argument_completions = true,
+--     warn_style = true,
+--     enable_semantic_tokens = true,
+--     enable_inlay_hints = true,
+--     inlay_hints_hide_redundant_param_names = true,
+--     inlay_hints_hide_redundant_param_names_last_token = true,
+--     operator_completions = true,
+--     include_at_in_builtins = true,
+--     max_detail_length = 1048576,
+--     zig_exe_path='C:/Users/halop/.zvm/bin/zig.exe',
+--     zls_exe_path='C:/Users/halop/.zvm/bin/zls.exe'
+--   },
+--   cmd = { 'C:/Users/halop/.zvm/bin/zls.exe'}
+-- }
 
 -- Setup neovim lua configuration
 require('neodev').setup()
 
--- nvim-cmp supports additional completion capabilities, so broadcast that to servers
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+require('mason').setup()
 
--- Ensure the servers above are installed
-local mason_lspconfig = require 'mason-lspconfig'
-
-mason_lspconfig.setup {
-  ensure_installed = vim.tbl_keys(servers)
-}
-
-mason_lspconfig.setup_handlers {
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
-    }
-  end,
-}
-
-require('lspconfig')['zls'].setup {
-  capabilities = capabilities,
-  on_attach = on_attach,
-  settings = zls,
-  cmd = { 'C:/Users/halop/.zvm/bin/zls.exe'}
+-- Setup mason-lspconfig with the new v2 API
+require("mason-lspconfig").setup {
+  ensure_installed = {
+    "clangd",
+    "gopls",
+    "eslint",
+    "tsserver",
+    "texlab",
+    "jdtls",
+    "lua_ls"
+  },
+  -- automatic_enable is enabled by default in v2
+  -- This will automatically vim.lsp.enable() installed servers
+  automatic_enable = true,
 }
 
 -- nvim-cmp setup
@@ -406,7 +471,14 @@ cmp.setup {
     { name = 'nvim_lua' }
   },
 }
-vim.g.vimtex_view_method = 'zathura'
+-- Windows PDF viewer options
+if vim.fn.has('win32') == 1 then
+  vim.g.vimtex_view_method = 'general'
+  vim.g.vimtex_view_general_viewer = 'SumatraPDF'
+  -- Or use: vim.g.vimtex_view_general_viewer = 'start'
+else
+  vim.g.vimtex_view_method = 'zathura'
+end
 
 --nvim-tree setup
 --
@@ -423,8 +495,8 @@ local function nvim_tree_on_attach(bufnr)
   api.config.mappings.default_on_attach(bufnr)
 end
 
-vim.keymap.set('n', '<C-n>', '<cmd> NvimTreeToggle <CR>', { desc = { 'Toggle nvimtree' } })
-vim.keymap.set('n', '<leader>e', '<cmd> NvimTreeFocus <CR>', { desc = { 'Focus nvimtree' } })
+vim.keymap.set('n', '<C-n>', '<cmd> NvimTreeToggle <CR>', { desc = 'Toggle nvimtree' })
+vim.keymap.set('n', '<leader>e', '<cmd> NvimTreeFocus <CR>', { desc = 'Focus nvimtree' })
 
 tree.setup {
   on_attach = nvim_tree_on_attach,
