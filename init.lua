@@ -171,15 +171,12 @@ vim.api.nvim_set_keymap('n', '<S-F7>', "<cmd>CompilerToggleResults<cr>", { norem
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
-require('nvim-treesitter').setup {
+require('nvim-treesitter.configs').setup {
   -- Add languages to be installed here that you want installed for treesitter
-  ensure_installed = { 'c', 'cpp', 'go', 'hlsl', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vimdoc', 'vim' },
+  ensure_installed = { 'c', 'cpp', 'go', 'hlsl', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vimdoc', 'vim', 'odin' },
 
   -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
   auto_install = false,
-
-  -- Use prefer_git = false to avoid compilation issues on Windows
-  prefer_git = false,
 
   highlight = { enable = true },
   indent = { enable = false, disable = { 'python' } },
@@ -355,6 +352,13 @@ vim.lsp.config('lua_ls', {
   },
 })
 
+
+-- Odin
+vim.lsp.config('ols', {
+    capabilities = capabilities,
+    on_attach = on_attach,
+})
+
 vim.lsp.config('zls', {
   capabilities = capabilities,
   on_attach = on_attach,
@@ -416,7 +420,8 @@ require("mason-lspconfig").setup {
     "tsserver",
     "texlab",
     "jdtls",
-    "lua_ls"
+    "lua_ls",
+    "ols"
   },
   -- automatic_enable is enabled by default in v2
   -- This will automatically vim.lsp.enable() installed servers

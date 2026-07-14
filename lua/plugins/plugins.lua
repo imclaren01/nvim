@@ -25,6 +25,10 @@ return {
       'folke/neodev.nvim',
     },
   },
+  -- Copilot
+  {
+    'github/copilot.vim'
+  },
   {
     'github/copilot.vim'
   },
@@ -74,7 +78,7 @@ return {
   {
     { -- This plugin
       "Zeioth/compiler.nvim",
-      cmd = {"CompilerOpen", "CompilerToggleResults", "CompilerRedo"},
+      cmd = { "CompilerOpen", "CompilerToggleResults", "CompilerRedo" },
       dependencies = { "stevearc/overseer.nvim", "nvim-telescope/telescope.nvim" },
       opts = {},
     },
@@ -234,11 +238,12 @@ return {
 
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    branch = 'master',
     autotag = {
       enable = true,
     },
     dependencies = {
-      'nvim-treesitter/nvim-treesitter-textobjects',
+      { 'nvim-treesitter/nvim-treesitter-textobjects', branch = 'master' },
     },
     build = ":TSUpdate",
   },
@@ -280,4 +285,5 @@ return {
       require("Comment").setup(opts)
     end,
   },
+  { "nvim-tree/nvim-web-devicons", opts = {} },
 }
