@@ -238,14 +238,12 @@ return {
 
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
-    branch = 'master',
-    autotag = {
-      enable = true,
-    },
+    branch = 'main',
+    lazy = false,
+    build = ':TSUpdate',
     dependencies = {
-      { 'nvim-treesitter/nvim-treesitter-textobjects', branch = 'master' },
+      { 'nvim-treesitter/nvim-treesitter-textobjects', branch = 'main' },
     },
-    build = ":TSUpdate",
   },
   --omni
   "hrsh7th/cmp-omni",
