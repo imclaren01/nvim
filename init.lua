@@ -420,8 +420,23 @@ vim.lsp.config('lua_ls', {
 vim.lsp.config('ols', {
     capabilities = capabilities,
     on_attach = on_attach,
+    settings = {
+      enable_overload_resolution = true,
+      enable_inlay_hints_params = true,
+      enable_inlay_hints_default_params = true,
+      enable_inlay_hints_implicit_return = true,
+      enable_inlay_hints_optional_result = true,
+      enable_semantic_tokens = true,
+      enable_snippets = true,
+      enable_comp_lit_signature_help = true,
+      enable_comp_lit_signature_help_use_docs = true,
+      enable_code_action_invert_if = true,
+
+      enable_checker_only_saved = false,
+    }
 })
 
+-- Zig
 vim.lsp.config('zls', {
   capabilities = capabilities,
   on_attach = on_attach,
